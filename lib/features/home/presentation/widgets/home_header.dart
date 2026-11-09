@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:taz/app/theme/app_colors.dart';
 import 'package:taz/app/theme/app_spacing.dart';
+import 'package:taz/app/theme/app_text_styles.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
@@ -20,7 +21,7 @@ class HomeHeader extends StatelessWidget {
           child: RichText(
             text: TextSpan(
               text: 'Today',
-              style: TextStyle(color: AppColors.primaryText),
+              style: AppTextStyles.header,
               children: [
                 TextSpan(
                   text: ', 18 Nov',
@@ -61,16 +62,14 @@ class HomeHeaderButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 44,
-        width: 44,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.card,
-        ),
-        child: Icon(icon),
+    return IconButton.filled(
+      onPressed: onTap,
+      icon: Icon(icon),
+      style: IconButton.styleFrom(
+        backgroundColor: AppColors.card,
+        foregroundColor: AppColors.primaryText,
+        shape: CircleBorder(),
+        fixedSize: Size(44, 44),
       ),
     );
   }
