@@ -29,10 +29,7 @@ class HabitCard extends StatelessWidget {
               crossAxisAlignment: .start,
               children: [
                 Text(title, style: AppTextStyles.habitTitle),
-                Text(
-                  description,
-                  style: AppTextStyles.subtitle,
-                ),
+                Text(description, style: AppTextStyles.subtitle),
               ],
             ),
           ),

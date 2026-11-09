@@ -17,9 +17,11 @@ class HabitCompletionIndicator extends StatelessWidget {
         decoration: BoxDecoration(
           color: isCompleted ? AppColors.primaryAccent : Colors.transparent,
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.primaryAccent, width: 2)
+          border: Border.all(color: AppColors.primaryAccent, width: 2),
         ),
-        child: isCompleted ? Icon(Icons.check , color: AppColors.background,) : null,
+        child: isCompleted
+            ? Icon(Icons.check, color: AppColors.background)
+            : null,
       ),
     );
   }
