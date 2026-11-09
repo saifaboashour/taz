@@ -10,6 +10,14 @@ void main() {
     (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(home: HomeScreen()));
 
+      expect(find.text('2 of 4'), findsOneWidget);
+
+      expect(find.text('50%'), findsOneWidget);
+
+      final progressFinder = find.byType(LinearProgressIndicator);
+
+      expect(tester.widget<LinearProgressIndicator>(progressFinder).value, 0.5);
+
       final walkCardFinder = find.ancestor(
         of: find.text('Walk'),
         matching: find.byType(HabitCard),
@@ -38,6 +46,15 @@ void main() {
         isTrue,
       );
 
+      expect(find.text('3 of 4'), findsOneWidget);
+
+      expect(find.text('75%'), findsOneWidget);
+
+      expect(
+        tester.widget<LinearProgressIndicator>(progressFinder).value,
+        0.75,
+      );
+
       await tester.tap(walkIndicatorFinder);
 
       await tester.pump();
@@ -48,6 +65,12 @@ void main() {
             .isCompleted,
         isFalse,
       );
+
+      expect(find.text('2 of 4'), findsOneWidget);
+
+      expect(find.text('50%'), findsOneWidget);
+
+      expect(tester.widget<LinearProgressIndicator>(progressFinder).value, 0.5);
 
       final readCardFinder = find.ancestor(
         of: find.text('Read'),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:taz/app/theme/app_spacing.dart';
 import 'package:taz/features/habits/domain/models/habit.dart';
 import 'package:taz/features/home/presentation/widgets/habit_card.dart';
+import 'package:taz/features/home/presentation/widgets/habit_progress.dart';
 import 'package:taz/features/home/presentation/widgets/home_header.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -55,6 +56,12 @@ class _HomeScreenState extends State<HomeScreen> {
             spacing: AppSpacing.xl,
             children: [
               HomeHeader(),
+              HabitProgress(
+                completedCount: _habits
+                    .where((habit) => habit.isCompleted)
+                    .length,
+                totalCount: _habits.length,
+              ),
               Expanded(
                 child: ListView.separated(
                   itemCount: _habits.length,
