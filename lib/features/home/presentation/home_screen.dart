@@ -4,10 +4,15 @@ import 'package:taz/features/habits/domain/models/habit.dart';
 import 'package:taz/features/home/presentation/widgets/habit_card.dart';
 import 'package:taz/features/home/presentation/widgets/home_header.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  static const List<Habit> habits = [
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final List<Habit> _habits = [
     Habit(
       id: '1',
       title: 'Walk',
@@ -28,6 +33,17 @@ class HomeScreen extends StatelessWidget {
     ),
   ];
 
+  void _toggleHabit(String habitId) {
+    final int index = _habits.indexWhere((habit) => habit.id == habitId);
+    if (index >= 0) {
+      setState(() {
+        _habits[index] = _habits[index].copyWith(
+          isCompleted: !_habits[index].isCompleted,
+        );
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,15 +57,16 @@ class HomeScreen extends StatelessWidget {
               HomeHeader(),
               Expanded(
                 child: ListView.separated(
-                  itemCount: habits.length,
+                  itemCount: _habits.length,
                   separatorBuilder: (context, index) =>
                       const SizedBox(height: AppSpacing.md),
                   itemBuilder: (context, index) {
-                    final Habit habit = habits[index];
+                    final Habit habit = _habits[index];
                     return HabitCard(
                       title: habit.title,
                       description: habit.description,
                       isCompleted: habit.isCompleted,
+                      onTap: () => _toggleHabit(habit.id),
                     );
                   },
                 ),

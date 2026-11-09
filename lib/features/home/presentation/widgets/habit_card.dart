@@ -11,11 +11,13 @@ class HabitCard extends StatelessWidget {
     required this.title,
     required this.description,
     required this.isCompleted,
+    required this.onTap,
   });
 
   final String title;
   final String description;
   final bool isCompleted;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +35,7 @@ class HabitCard extends StatelessWidget {
               ],
             ),
           ),
-          HabitCompletionIndicator(isCompleted: isCompleted),
+          HabitCompletionIndicator(isCompleted: isCompleted, onTap: onTap),
         ],
       ),
     );
