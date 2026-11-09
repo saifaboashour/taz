@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taz/features/habits/presentation/widgets/add_habit_sheet.dart';
 import 'package:taz/features/home/presentation/home_screen.dart';
+import 'package:taz/features/home/presentation/widgets/add_habit_button.dart';
 import 'package:taz/features/home/presentation/widgets/habit_card.dart';
 import 'package:taz/features/home/presentation/widgets/habit_completion_indicator.dart';
 
@@ -10,11 +12,15 @@ void main() {
     (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(home: HomeScreen()));
 
+      expect(find.text('Add Habit'), findsOneWidget);
+
       expect(find.text('2 of 4'), findsOneWidget);
 
       expect(find.text('50%'), findsOneWidget);
 
       final progressFinder = find.byType(LinearProgressIndicator);
+
+      final addHabitButtonFinder = find.byType(AddHabitButton);
 
       expect(tester.widget<LinearProgressIndicator>(progressFinder).value, 0.5);
 
@@ -88,6 +94,75 @@ void main() {
             .isCompleted,
         isTrue,
       );
+
+      await tester.tap(addHabitButtonFinder);
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add Habit'), findsOneWidget);
+
+      expect(find.byType(AddHabitSheet), findsOneWidget);
+
+      expect(find.byType(TextField), findsNWidgets(2));
+      expect(find.text('New Habit'), findsOneWidget);
+
+      final saveHabitFinder = find.ancestor(
+        of: find.text('Save Habit'),
+        matching: find.byType(ElevatedButton),
+      );
+
+      final habitNameFinder = find.ancestor(
+        of: find.text('Habit Name'),
+        matching: find.byType(TextField),
+      );
+
+      expect(tester.widget<ElevatedButton>(saveHabitFinder).onPressed, isNull);
+
+      await tester.enterText(habitNameFinder, '   ');
+      await tester.pump();
+
+      expect(tester.widget<ElevatedButton>(saveHabitFinder).onPressed, isNull);
+
+      await tester.enterText(habitNameFinder, '  Walk  ');
+      await tester.pump();
+
+      expect(
+        tester.widget<ElevatedButton>(saveHabitFinder).onPressed,
+        isNotNull,
+      );
+
+      await tester.enterText(habitNameFinder, '');
+      await tester.pump();
+
+      expect(tester.widget<ElevatedButton>(saveHabitFinder).onPressed, isNull);
+
+      await tester.enterText(habitNameFinder, 'Read');
+
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<ElevatedButton>(saveHabitFinder).onPressed,
+        isNotNull,
+      );
+
+      await tester.tap(find.byIcon(Icons.close));
+
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<HabitCompletionIndicator>(walkIndicatorFinder)
+            .isCompleted,
+        isFalse,
+      );
+
+      expect(find.byType(AddHabitSheet), findsNothing);
+
+      expect(find.text('2 of 4'), findsOneWidget);
+
+      expect(find.text('50%'), findsOneWidget);
+
+      expect(find.byType(HabitCard), findsNWidgets(4));
     },
   );
 }

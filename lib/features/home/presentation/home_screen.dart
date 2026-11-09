@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:taz/app/theme/app_spacing.dart';
+import 'package:taz/app/theme/app_text_styles.dart';
 import 'package:taz/features/habits/domain/models/habit.dart';
+import 'package:taz/features/habits/presentation/widgets/add_habit_sheet.dart';
+import 'package:taz/features/home/presentation/widgets/add_habit_button.dart';
 import 'package:taz/features/home/presentation/widgets/habit_card.dart';
 import 'package:taz/features/home/presentation/widgets/habit_progress.dart';
 import 'package:taz/features/home/presentation/widgets/home_header.dart';
@@ -45,6 +48,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _addHabit() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return AddHabitSheet(
+          onClose: () {
+            Navigator.pop(context);
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,6 +78,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     .where((habit) => habit.isCompleted)
                     .length,
                 totalCount: _habits.length,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Your Habits', style: AppTextStyles.header),
+                  AddHabitButton(onTap: _addHabit),
+                ],
               ),
               Expanded(
                 child: ListView.separated(
