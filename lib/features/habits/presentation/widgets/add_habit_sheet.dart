@@ -4,9 +4,10 @@ import 'package:taz/app/theme/app_spacing.dart';
 import 'package:taz/app/theme/app_text_styles.dart';
 
 class AddHabitSheet extends StatefulWidget {
-  const AddHabitSheet({super.key, required this.onClose});
+  const AddHabitSheet({super.key, required this.onClose, required this.onSave});
 
   final VoidCallback onClose;
+  final void Function(String, String) onSave;
 
   @override
   State<AddHabitSheet> createState() => _AddHabitSheetState();
@@ -72,7 +73,14 @@ class _AddHabitSheetState extends State<AddHabitSheet> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _nameController.text.trim().isEmpty ? null : () {},
+                onPressed: _nameController.text.trim().isEmpty
+                    ? null
+                    : () {
+                        widget.onSave(
+                          _nameController.text.trim(),
+                          _descriptionController.text.trim(),
+                        );
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryAccent,
                   foregroundColor: AppColors.background,

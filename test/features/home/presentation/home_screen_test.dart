@@ -165,4 +165,44 @@ void main() {
       expect(find.byType(HabitCard), findsNWidgets(4));
     },
   );
+
+  testWidgets('Add Habit Sheet', (WidgetTester tester) async {
+    String? receivedName;
+    String? receivedDescription;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AddHabitSheet(
+            onClose: () {},
+            onSave: (name, description) {
+              receivedName = name;
+              receivedDescription = description;
+            },
+          ),
+        ),
+      ),
+    );
+
+    final nameFieldFinder = find.byType(TextField).at(0);
+    final descriptionFieldFinder = find.byType(TextField).at(1);
+    final saveHabitFinder = find.ancestor(
+      of: find.text('Save Habit'),
+      matching: find.byType(ElevatedButton),
+    );
+
+    await tester.enterText(nameFieldFinder, '  Morning Walk  ');
+    await tester.enterText(descriptionFieldFinder, '  Walk for 30 minutes  ');
+
+    await tester.pumpAndSettle();
+
+    await tester.tap(saveHabitFinder);
+
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AddHabitSheet), findsOneWidget);
+
+    expect(receivedName, 'Morning Walk');
+    expect(receivedDescription, 'Walk for 30 minutes');
+  });
 }

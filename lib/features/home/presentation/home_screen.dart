@@ -54,6 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return AddHabitSheet(
+          onSave: (String name, String description) {
+            debugPrint('Habit name: $name\nHabit description: $description');
+          },
           onClose: () {
             Navigator.pop(context);
           },
