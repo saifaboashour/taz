@@ -54,8 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return AddHabitSheet(
-          onSave: (String name, String description) {
-            debugPrint('Habit name: $name\nHabit description: $description');
+          onSave: (String title, String description) {
+            _saveHabit(title, description);
+            Navigator.pop(context);
           },
           onClose: () {
             Navigator.pop(context);
@@ -63,6 +64,17 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  void _saveHabit(String title, String description) {
+    final habit = Habit(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      title: title,
+      description: description,
+    );
+    setState(() {
+      _habits.add(habit);
+    });
   }
 
   @override

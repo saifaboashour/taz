@@ -205,4 +205,70 @@ void main() {
     expect(receivedName, 'Morning Walk');
     expect(receivedDescription, 'Walk for 30 minutes');
   });
+
+  testWidgets('Test Adding a new Habit', (WidgetTester tester) async {
+    await tester.pumpWidget(MaterialApp(home: HomeScreen()));
+
+    expect(find.text('2 of 4'), findsOneWidget);
+
+    expect(find.text('50%'), findsOneWidget);
+
+    expect(find.byType(HabitCard), findsNWidgets(4));
+
+    final addHabitButtonFinder = find.byType(AddHabitButton);
+
+    await tester.tap(addHabitButtonFinder);
+
+    await tester.pumpAndSettle();
+
+    final nameFieldFinder = find.byType(TextField).at(0);
+    final descriptionFieldFinder = find.byType(TextField).at(1);
+    final saveHabitFinder = find.ancestor(
+      of: find.text('Save Habit'),
+      matching: find.byType(ElevatedButton),
+    );
+
+    await tester.enterText(nameFieldFinder, 'Morning Walk');
+    await tester.enterText(descriptionFieldFinder, 'Walk for 30 minutes');
+
+    await tester.pumpAndSettle();
+
+    await tester.tap(saveHabitFinder);
+
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AddHabitSheet), findsNothing);
+
+    await tester.scrollUntilVisible(
+      find.text('Morning Walk'),
+      150,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Morning Walk'), findsOneWidget);
+    expect(find.text('Walk for 30 minutes'), findsOneWidget);
+
+    expect(find.text('2 of 5'), findsOneWidget);
+
+    expect(find.text('40%'), findsOneWidget);
+
+    final newHabitCardFinder = find.ancestor(
+      of: find.text('Morning Walk'),
+      matching: find.byType(HabitCard),
+    );
+
+    final newHabitCardIndicatorFinder = find.descendant(
+      of: newHabitCardFinder,
+      matching: find.byType(HabitCompletionIndicator),
+    );
+
+    expect(
+      tester
+          .widget<HabitCompletionIndicator>(newHabitCardIndicatorFinder)
+          .isCompleted,
+      isFalse,
+    );
+  });
 }
