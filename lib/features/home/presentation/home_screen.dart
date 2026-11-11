@@ -2,50 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:taz/app/theme/app_spacing.dart';
 import 'package:taz/app/theme/app_text_styles.dart';
 import 'package:taz/features/habits/domain/models/habit.dart';
+import 'package:taz/features/habits/domain/repositories/habit_repository.dart';
 import 'package:taz/features/habits/presentation/widgets/add_habit_sheet.dart';
-import 'package:taz/features/home/presentation/widgets/add_habit_button.dart';
 import 'package:taz/features/home/presentation/widgets/habit_card.dart';
 import 'package:taz/features/home/presentation/widgets/habit_progress.dart';
 import 'package:taz/features/home/presentation/widgets/home_header.dart';
 
+import 'widgets/add_habit_button.dart';
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, required this.habitRepository});
+
+  final HabitRepository habitRepository;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Habit> _habits = [
-    Habit(
-      id: '1',
-      title: 'Walk',
-      description: 'Goal · 4,000 steps / 3 days a week',
-    ),
-    Habit(
-      id: '2',
-      title: 'Read',
-      description: 'Goal · 20 minutes daily',
-      isCompleted: true,
-    ),
-    Habit(id: '3', title: 'Drink Water', description: 'Goal · 8 glasses daily'),
-    Habit(
-      id: '4',
-      title: 'Exercise',
-      description: 'Goal · 30 minutes / 4 days a week',
-      isCompleted: true,
-    ),
-  ];
+  late final Stream<List<Habit>> _habitsStream;
 
-  void _toggleHabit(String habitId) {
-    final int index = _habits.indexWhere((habit) => habit.id == habitId);
-    if (index >= 0) {
-      setState(() {
-        _habits[index] = _habits[index].copyWith(
-          isCompleted: !_habits[index].isCompleted,
-        );
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    _habitsStream = widget.habitRepository.watchHabits();
   }
 
   void _addHabit() {
@@ -54,9 +34,11 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return AddHabitSheet(
-          onSave: (String title, String description) {
-            _saveHabit(title, description);
-            Navigator.pop(context);
+          onSave: (String title, String description) async {
+            await _saveHabit(title, description);
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
           },
           onClose: () {
             Navigator.pop(context);
@@ -66,15 +48,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _saveHabit(String title, String description) {
+  Future<void> _saveHabit(String title, String description) async {
     final habit = Habit(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       title: title,
       description: description,
     );
-    setState(() {
-      _habits.add(habit);
-    });
+
+    await widget.habitRepository.addHabit(habit);
   }
 
   @override
@@ -88,31 +69,61 @@ class _HomeScreenState extends State<HomeScreen> {
             spacing: AppSpacing.xl,
             children: [
               HomeHeader(),
-              HabitProgress(
-                completedCount: _habits
-                    .where((habit) => habit.isCompleted)
-                    .length,
-                totalCount: _habits.length,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Your Habits', style: AppTextStyles.header),
-                  AddHabitButton(onTap: _addHabit),
-                ],
-              ),
+
               Expanded(
-                child: ListView.separated(
-                  itemCount: _habits.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: AppSpacing.md),
-                  itemBuilder: (context, index) {
-                    final Habit habit = _habits[index];
-                    return HabitCard(
-                      title: habit.title,
-                      description: habit.description,
-                      isCompleted: habit.isCompleted,
-                      onTap: () => _toggleHabit(habit.id),
+                child: StreamBuilder<List<Habit>>(
+                  stream: _habitsStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return const Center(child: Text('Failed to load habits'));
+                    }
+
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final habits = snapshot.data!;
+
+                    final completedCount = habits
+                        .where((habit) => habit.isCompleted)
+                        .length;
+
+                    return Column(
+                      children: [
+                        HabitProgress(
+                          completedCount: completedCount,
+                          totalCount: habits.length,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Your Habits', style: AppTextStyles.header),
+                            AddHabitButton(onTap: _addHabit),
+                          ],
+                        ),
+                        Expanded(
+                          child: habits.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'No habits yet. Add your first habit!',
+                                  ),
+                                )
+                              : ListView.separated(
+                                  itemCount: habits.length,
+                                  separatorBuilder: (context, index) =>
+                                      const SizedBox(height: AppSpacing.md),
+                                  itemBuilder: (context, index) {
+                                    final Habit habit = habits[index];
+                                    return HabitCard(
+                                      title: habit.title,
+                                      description: habit.description,
+                                      isCompleted: habit.isCompleted,
+                                      onTap: () {},
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
                     );
                   },
                 ),
