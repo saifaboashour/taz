@@ -194,7 +194,7 @@ void main() {
         home: Scaffold(
           body: AddHabitSheet(
             onClose: () {},
-            onSave: (name, description) {
+            onSave: (name, description) async {
               receivedName = name;
               receivedDescription = description;
             },

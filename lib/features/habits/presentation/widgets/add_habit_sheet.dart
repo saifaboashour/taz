@@ -7,13 +7,15 @@ class AddHabitSheet extends StatefulWidget {
   const AddHabitSheet({super.key, required this.onClose, required this.onSave});
 
   final VoidCallback onClose;
-  final void Function(String, String) onSave;
+  final Future<void> Function(String, String) onSave;
 
   @override
   State<AddHabitSheet> createState() => _AddHabitSheetState();
 }
 
 class _AddHabitSheetState extends State<AddHabitSheet> {
+  bool _isSaving = false;
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
@@ -73,20 +75,40 @@ class _AddHabitSheetState extends State<AddHabitSheet> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _nameController.text.trim().isEmpty
+                onPressed: _nameController.text.trim().isEmpty || _isSaving
                     ? null
-                    : () {
-                        widget.onSave(
-                          _nameController.text.trim(),
-                          _descriptionController.text.trim(),
-                        );
+                    : () async {
+                        try {
+                          setState(() {
+                            _isSaving = true;
+                          });
+                          await widget.onSave(
+                            _nameController.text.trim(),
+                            _descriptionController.text.trim(),
+                          );
+                        } finally {
+                          if (context.mounted) {
+                            setState(() {
+                              _isSaving = false;
+                            });
+                          }
+                        }
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryAccent,
                   foregroundColor: AppColors.background,
                   textStyle: AppTextStyles.habitTitle,
                 ),
-                child: Text('Save Habit'),
+                child: _isSaving
+                    ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.background,
+                        ),
+                      )
+                    : const Text('Save Habit'),
               ),
             ),
           ],
