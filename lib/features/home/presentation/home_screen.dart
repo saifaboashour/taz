@@ -22,6 +22,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late final Stream<List<Habit>> _habitsStream;
 
+  final Set<String> _updatingHabitIds = {};
+  bool _isSavingHabit = false;
+
   @override
   void initState() {
     super.initState();
@@ -35,8 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (BuildContext context) {
         return AddHabitSheet(
           onSave: (String title, String description) async {
-            await _saveHabit(title, description);
-            if (context.mounted) {
+            final bool saved = await _saveHabit(title, description);
+            if (saved && context.mounted) {
               Navigator.pop(context);
             }
           },
@@ -48,14 +51,53 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _saveHabit(String title, String description) async {
-    final habit = Habit(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      title: title,
-      description: description,
-    );
+  Future<bool> _saveHabit(String title, String description) async {
+    if (_isSavingHabit) {
+      return false;
+    }
+    try {
+      _isSavingHabit = true;
+      final habit = Habit(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        title: title,
+        description: description,
+      );
 
-    await widget.habitRepository.addHabit(habit);
+      await widget.habitRepository.addHabit(habit);
+
+      return true;
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to save habit')));
+      }
+      return false;
+    } finally {
+      _isSavingHabit = false;
+    }
+  }
+
+  Future<void> _toggleHabitCompletion(Habit habit) async {
+    if (_updatingHabitIds.contains(habit.id)) {
+      return;
+    }
+    try {
+      final DateTime current = DateTime.now();
+
+      _updatingHabitIds.add(habit.id);
+      if (habit.isCompleted) {
+        await widget.habitRepository.uncompleteHabit(habit.id, current);
+      } else {
+        await widget.habitRepository.completeHabit(habit.id, current);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to update habit')));
+      }
+    } finally {
+      _updatingHabitIds.remove(habit.id);
+    }
   }
 
   @override
@@ -118,7 +160,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       title: habit.title,
                                       description: habit.description,
                                       isCompleted: habit.isCompleted,
-                                      onTap: () {},
+                                      onTap: () =>
+                                          _toggleHabitCompletion(habit),
                                     );
                                   },
                                 ),
